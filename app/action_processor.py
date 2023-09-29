@@ -4,13 +4,14 @@ from app.intractable import Intractable
 from app.location import Location
 from app.container import Container
 from app.npc import Npc
+from app.sound_manager import SoundManager
 from app.transition import Transition
 from app.player import Player
 from app.journal import Journal
 
 class ActionProcessor:
-    def __init__(self):
-        pass
+    def __init__(self, sound_manager: SoundManager):
+        self.soundManager = sound_manager
 
     def look(self, search_location: Location, game_objects: dict[str, GameObject], *args) -> str:
         if args:
@@ -35,21 +36,22 @@ class ActionProcessor:
     def music(self, game_state, *args):
         if args:
             if "pause" == args[0]:  # Spacebar to play/pause music
-                if game_state['music_playing']:
-                    game_state["music_mixer"].music.pause()
+                if self.soundManager.sound_enabled:
+                    self.soundManager.pause_music()
                     return 'music is paused'
             elif "play" == args[0]:  # Spacebar to play/pause music
-                if game_state['music_playing']:
-                    game_state["music_mixer"].music.unpause()
+                if self.soundManager.sound_enabled:
+                    self.soundManager.play_music()
                     return 'music is playing'
             elif "up" == args[0]:  # Up arrow to increase music volume
-                game_state['music_volume'] = min(1.0, game_state['music_volume'] + .5)
-                game_state["music_mixer"].music.set_volume(game_state['music_volume'])
+                    self.soundManager.volume_up()
+                    return f"volume: {self.soundManager.music_volume}"
 
             elif "down" == args[0]:  # Down arrow to decrease music volume
-                game_state['music_volume'] = max(0.0, game_state['music_volume'] - .5)
-                game_state["music_mixer"].music.set_volume(game_state['music_volume'])
-                return f"volume: {game_state['music_volume']}"
+                self.soundManager.volume_down()
+                return f"volume: {self.soundManager.music_volume}"
+        else:
+            return 'Invalid usage of command [music]. requires at least one argument. please use the help command for more information'
     
     def talk(self, search_location: Location, game_objects: dict[str, GameObject], *args) -> str:
         if args:
