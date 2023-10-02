@@ -1,4 +1,3 @@
-#imports
 from app.game_object import GameObject
 from app.intractable import Intractable
 from app.location import Location
@@ -10,10 +9,26 @@ from app.player import Player
 from app.journal import Journal
 
 class ActionProcessor:
+    """Processes commands from the user and executes them returning the results.
+    """    
     def __init__(self, sound_manager: SoundManager):
+        """Initializes the ActionProcessor class.
+
+        Args:
+            sound_manager (SoundManager): Instance of the SoundManager class.
+        """        
         self.soundManager = sound_manager
 
     def look(self, search_location: Location, game_objects: dict[str, GameObject], *args) -> str:
+        """Command to look at the current location or a specific object.
+
+        Args:
+            search_location (Location): Location object to search for entities.
+            game_objects (dict[str, GameObject]): Dictionary of game objects.
+
+        Returns:
+            str: Description of the current location, a specific object, or error message.
+        """
         if args:
             looking_for = args[0]
             entities = [
@@ -33,7 +48,12 @@ class ActionProcessor:
                 return entities[0].description
             return f"You can't seem to find any {looking_for}s here, try using the help command."
 
-    def music(self, game_state, *args):
+    def music(self, *args) -> str:
+        """Command to control the music.
+
+        Returns:
+            str: Result of the command, or error message.
+        """        
         if args:
             if "pause" == args[0]:  # Spacebar to play/pause music
                 if self.soundManager.sound_enabled:
@@ -54,6 +74,15 @@ class ActionProcessor:
             return 'Invalid usage of command [music]. requires at least one argument. please use the help command for more information'
     
     def talk(self, search_location: Location, game_objects: dict[str, GameObject], *args) -> str:
+        """Command to talk to npcs and read journals.
+
+        Args:
+            search_location (Location): Location object to search for entities.
+            game_objects (dict[str, GameObject]): Dictionary of game objects.
+
+        Returns:
+            str: Dialogue of the npc or journal, or error message.
+        """        
         if args:
             talking = args[0]
             journals = [
@@ -82,7 +111,16 @@ class ActionProcessor:
             return f"You can't seem to find any {talking}s here, try using the help command."
         return "Please specify who or what you want to talk to, type help to learn more about talking you native language."
 
-    def move(self, search_location: Location, game_objects: dict[str, GameObject], *args) -> str or callable:
+    def move(self, search_location: Location, game_objects: dict[str, GameObject], *args) -> tuple[str, int] or str:
+        """Command to move to a different location.
+
+        Args:
+            search_location (Location): Location object to search for entities.
+            game_objects (dict[str, GameObject]): Dictionary of game objects.
+
+        Returns:
+            tuple[str, int] or str: Reference to the new location, or error message.
+        """ 
         if args:
             moving = args[0]
             transitions: list[Transition] = [
@@ -99,10 +137,24 @@ class ActionProcessor:
                 return f"You can't go that way because the {moving} is {transition.state}"
             return f"You can't move to the {moving}, try using the help command."
 
-    def wrong(self):
+    def invalid(self) -> str:
+        """Invalid command error message.
+
+        Returns:
+            str: Error message.
+        """        
         return "command not found please use the help command to see valid commands and examples"
 
     def take(self, search_location: Location, game_objects: dict[str, GameObject], *args) -> str:
+        """Command to take items from the current location or a container.
+
+        Args:
+            search_location (Location): Location object to search for entities.
+            game_objects (dict[str, GameObject]): Dictionary of game objects.
+
+        Returns:
+            str: Result of the command, or error message.
+        """        
         if args:
             if len(args) == 1:
                 looking_for = args[0]
@@ -157,6 +209,15 @@ class ActionProcessor:
                 return f"You can't seem to find a {container} here."
 
     def drop(self, search_location: Location, game_objects: dict[str, GameObject], *args) -> str:
+        """Command to drop items from the player's inventory or a container.
+
+        Args:
+            search_location (Location): Location object to search for entities.
+            game_objects (dict[str, GameObject]): Dictionary of game objects.
+
+        Returns:
+            str: Result of the command, or error message.
+        """        
         if args:
             if len(args) == 1:
                 looking_for = args[0]
@@ -205,7 +266,15 @@ class ActionProcessor:
                     return f"You don't have a {looking_for}."
                 return f"You can't seem to find a {container} here."
 
-    def inventory(self, game_objects: dict[str, GameObject], *args):
+    def inventory(self, game_objects: dict[str, GameObject], *args) -> str:
+        """Command to view the player's inventory.
+
+        Args:
+            game_objects (dict[str, GameObject]): Dictionary of game objects.
+
+        Returns:
+            str: Status of the player's inventory, or error message.
+        """       
         player: Player = game_objects['players'][0]
         if len(args) == 1:
             looking_for = args[0]
@@ -272,6 +341,15 @@ class ActionProcessor:
         return "Your inventory is empty."
 
     def use(self, search_location: Location, game_objects: dict[str, GameObject], *args) -> str:
+        """Command to use items on other items or intractables.
+
+        Args:
+            search_location (Location): Location object to search for entities.
+            game_objects (dict[str, GameObject]): Dictionary of game objects.
+
+        Returns:
+            str: Result of the command, or error message.
+        """        
         if len(args) == 1:
             target = args[0]
             intractables: list[Intractable] = [
@@ -321,7 +399,18 @@ class ActionProcessor:
         if len(args) < 1:
             return 'Invalid usage of command [use]. requires at least one argument. please use the help command for more information'
 
-    def process(self, command: str, search_location: Location, game_objects: dict[str, GameObject], game_state: dict[str, any], *args) -> callable:
+    def process(self, command: str, search_location: Location, game_objects: dict[str, GameObject], game_state: dict[str, any], *args) -> tuple[str, int] or str:
+        """Processes the command and returns the result.
+
+        Args:
+            command (str): Command to process.
+            search_location (Location): Location object to search for entities.
+            game_objects (dict[str, GameObject]): Dictionary of game objects.
+            game_state (dict[str, any]): Current game state.
+
+        Returns:
+            tuple[str, int] or str: Result of the command, or error message.
+        """        
         if command == 'look':
             return self.look(search_location, game_objects, *args)
         if command == "move":
@@ -338,5 +427,5 @@ class ActionProcessor:
             return self.talk(search_location, game_objects, *args)
         if command == 'music':
             return self.music(game_state, *args)
-        return self.wrong()
+        return self.invalid()
     

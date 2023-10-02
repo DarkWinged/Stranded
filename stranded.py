@@ -1,5 +1,3 @@
-# ./main.py
-
 #! /usr/bin/env python3
 # James L. Rogers | github.com/DarkWinged
 
